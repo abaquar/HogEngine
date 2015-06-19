@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html>
+	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>2EsLadino - Editor de Imagem</title>
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+	
+	<style>
+		body{
+			font-size:14px;
+			text-align: center;
+			position:absolute;
+			margin:auto;
+			top:0;
+			left:0;
+			right:0;
+			bottom:0;
+			-webkit-user-select: none;
+			-moz-user-select: none;
+			user-select: none;
+		}
+		.imagem { margin auto; border-collapse:collapse }
+		.imagem td {
+			cursor:pointer;
+			width:32px; height:32px;
+			background-color: #000;
+			text-align:center;
+			font-family:sans-serif; font-size:13px;
+		}
+		canvas {
+			cursor:pointer;
+			border:1px solid #000000;
+			display: block;
+			float: left;
+			margin:0; padding:0;
+		}
+		body {
+		  
+		}
+		.center {
+			 float: none;
+			 margin-left: auto;
+			 margin-right: auto;
+		}
+	</style>
+	<script type="text/javascript">
+		var cores = [
+			'#000000', '#000055', '#0000AA', '#0000FF', '#002400', '#002455', '#0024AA', '#0024FF',
+			'#004800', '#004855', '#0048AA', '#0048FF', '#006C00', '#006C55', '#006CAA', '#006CFF',
+			'#009000', '#009055', '#0090AA', '#0090FF', '#00B400', '#00B455', '#00B4AA', '#00B4FF',
+			'#00D800', '#00D855', '#00D8AA', '#00D8FF', '#00FC00', '#00FC55', '#00FCAA', '#00FCFF', 
+			
+			'#240000', '#240055', '#2400AA', '#2400FF', '#242400', '#242455', '#2424AA', '#2424FF',
+			'#244800', '#244855', '#2448AA', '#2448FF', '#246C00', '#246C55', '#246CAA', '#246CFF',
+			'#249000', '#249055', '#2490AA', '#2490FF', '#24B400', '#24B455', '#24B4AA', '#24B4FF',
+			'#24D800', '#24D855', '#24D8AA', '#24D8FF', '#24FC00', '#24FC55', '#24FCAA', '#24FCFF', 
+			
+			'#480000', '#480055', '#4800AA', '#4800FF', '#482400', '#482455', '#4824AA', '#4824FF',
+			'#484800', '#484855', '#4848AA', '#4848FF', '#486C00', '#486C55', '#486CAA', '#486CFF',
+			'#489000', '#489055', '#4890AA', '#4890FF', '#48B400', '#48B455', '#48B4AA', '#48B4FF',
+			'#48D800', '#48D855', '#48D8AA', '#48D8FF', '#48FC00', '#48FC55', '#48FCAA', '#48FCFF', 
+			
+			'#6C0000', '#6C0055', '#6C00AA', '#6C00FF', '#6C2400', '#6C2455', '#6C24AA', '#6C24FF',
+			'#6C4800', '#6C4855', '#6C48AA', '#6C48FF', '#6C6C00', '#6C6C55', '#6C6CAA', '#6C6CFF',
+			'#6C9000', '#6C9055', '#6C90AA', '#6C90FF', '#6CB400', '#6CB455', '#6CB4AA', '#6CB4FF',
+			'#6CD800', '#6CD855', '#6CD8AA', '#6CD8FF', '#6CFC00', '#6CFC55', '#6CFCAA', '#6CFCFF', 
+			
+			'#900000', '#900055', '#9000AA', '#9000FF', '#902400', '#902455', '#9024AA', '#9024FF',
+			'#904800', '#904855', '#9048AA', '#9048FF', '#906C00', '#906C55', '#906CAA', '#906CFF',
+			'#909000', '#909055', '#9090AA', '#9090FF', '#90B400', '#90B455', '#90B4AA', '#90B4FF',
+			'#90D800', '#90D855', '#90D8AA', '#90D8FF', '#90FC00', '#90FC55', '#90FCAA', '#90FCFF',
+
+			'#B40000', '#B40055', '#B400AA', '#B400FF', '#B42400', '#B42455', '#B424AA', '#B424FF',
+			'#B44800', '#B44855', '#B448AA', '#B448FF', '#B46C00', '#B46C55', '#B46CAA', '#B46CFF',
+			'#B49000', '#B49055', '#B490AA', '#B490FF', '#B4B400', '#B4B455', '#B4B4AA', '#B4B4FF',
+			'#B4D800', '#B4D855', '#B4D8AA', '#B4D8FF', '#B4FC00', '#B4FC55', '#B4FCAA', '#B4FCFF', 
+			
+			'#D80000', '#D80055', '#D800AA', '#D800FF', '#D82400', '#D82455', '#D824AA', '#D824FF',
+			'#D84800', '#D84855', '#D848AA', '#D848FF', '#D86C00', '#D86C55', '#D86CAA', '#D86CFF',
+			'#D89000', '#D89055', '#D890AA', '#D890FF', '#D8B400', '#D8B455', '#D8B4AA', '#D8B4FF',
+			'#D8D800', '#D8D855', '#D8D8AA', '#D8D8FF', '#D8FC00', '#D8FC55', '#D8FCAA', '#D8FCFF',
+			
+			'#FF0000', '#FF0055', '#FF00AA', '#FF00FF', '#FF2400', '#FF2455', '#FF24AA', '#FF24FF',
+			'#FF4800', '#FF4855', '#FF48AA', '#FF48FF', '#FF6C00', '#FF6C55', '#FF6CAA', '#FF6CFF',
+			'#FF9000', '#FF9055', '#FF90AA', '#FF90FF', '#FFB400', '#FFB455', '#FFB4AA', '#FFB4FF',
+			'#FFD800', '#FFD855', '#FFD8AA', '#FFD8FF', '#FFFC00', '#FFFC55', '#FFFCAA', '#FFFCFF'
+		];
+		
+		var tamanhoTabela = 8;
+		var imagem = canvasClickavel(tamanhoTabela,tamanhoTabela);
+		var corAtual = 0;
+		
+		var desenhando = false;
+		
+		function mudaCorCond(evt){
+		  if(desenhando){
+			mudaCor(evt);
+		  }
+		}
+		
+		function mudaCor(evt){
+		  var clickedOn = evt.target;
+		  desenhando = true;
+		  if(corAtual >= 0){
+			clickedOn.style.backgroundColor = cores[corAtual];
+			clickedOn.style.color = cores[corAtual];
+		  }else{
+			clickedOn.style.backgroundColor = '#555555';
+			clickedOn.style.color = '#555555';
+		  }
+		  clickedOn.innerHTML = corAtual + ',';
+		}
+		
+		function desligaDesenho(){
+			desenhando = false;
+		}
+			 
+		function canvasClickavel( rows, cols, callback ){
+			var i=0;
+			var imagem = document.createElement('table');
+			imagem.className = 'imagem';
+			for (var r=0;r<rows;++r){
+				var tr = imagem.appendChild(document.createElement('tr'));
+				for (var c=0;c<cols;++c){
+					var cell = tr.appendChild(document.createElement('td'));
+					cell.style.backgroundColor = '#555555';
+					cell.style.color = '#555555';
+					cell.innerHTML = '-1,';
+					cell.addEventListener('mousedown',mudaCor,false);
+					cell.addEventListener('mouseover',mudaCorCond,false);
+				}
+			}
+			imagem.addEventListener('mouseup',desligaDesenho,false);
+			return imagem;
+		}
+		
+		function mudaCorId( id ){
+			corAtual = id;
+		}
+		
+		function copy2cb(){
+		  var output = document.getElementById("output");
+		  var div = document.getElementsByClassName("imagem")[0];
+		  output.textContent = "{\n";
+		  output.textContent += div.textContent;
+		  output.textContent += "\n}";
+		} 
+	</script>
+</head>
+<body style="background-color:#1D1F21;">
+
+	<div class="col-md-12" >
+		<script type="text/javascript">
+			document.body.appendChild(imagem);
+		</script>
+	</div>
+
+	<div class="container col-md-12" style="background-color:red;">
+		<canvas width="16" height="142" style="background-color: #555555;" onclick="mudaCorId(-1)"></canvas>
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #000000;" onclick="mudaCorId(0)"></canvas>
+			<canvas width="16" height="16" style="background-color: #000055;" onclick="mudaCorId(1)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0000AA;" onclick="mudaCorId(2)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0000FF;" onclick="mudaCorId(3)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #002400;" onclick="mudaCorId(4)"></canvas>
+			<canvas width="16" height="16" style="background-color: #002455;" onclick="mudaCorId(5)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0024AA;" onclick="mudaCorId(6)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0024FF;" onclick="mudaCorId(7)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #004800;" onclick="mudaCorId(8)"></canvas>
+			<canvas width="16" height="16" style="background-color: #004855;" onclick="mudaCorId(9)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0048AA;" onclick="mudaCorId(10)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0048FF;" onclick="mudaCorId(11)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #006C00;" onclick="mudaCorId(12)"></canvas>
+			<canvas width="16" height="16" style="background-color: #006C55;" onclick="mudaCorId(13)"></canvas>
+			<canvas width="16" height="16" style="background-color: #006CAA;" onclick="mudaCorId(14)"></canvas>
+			<canvas width="16" height="16" style="background-color: #006CFF;" onclick="mudaCorId(15)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #009000;" onclick="mudaCorId(16)"></canvas>
+			<canvas width="16" height="16" style="background-color: #009055;" onclick="mudaCorId(17)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0090AA;" onclick="mudaCorId(18)"></canvas>
+			<canvas width="16" height="16" style="background-color: #0090FF;" onclick="mudaCorId(19)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #00B400;" onclick="mudaCorId(20)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00B455;" onclick="mudaCorId(21)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00B4AA;" onclick="mudaCorId(22)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00B4FF;" onclick="mudaCorId(23)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #00D800;" onclick="mudaCorId(24)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00D855;" onclick="mudaCorId(25)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00D8AA;" onclick="mudaCorId(26)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00D8FF;" onclick="mudaCorId(27)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #00FC00;" onclick="mudaCorId(28)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00FC55;" onclick="mudaCorId(29)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00FCAA;" onclick="mudaCorId(30)"></canvas>
+			<canvas width="16" height="16" style="background-color: #00FCFF;" onclick="mudaCorId(31)"></canvas>
+			<br>
+		</div>
+		
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #240000;" onclick="mudaCorId(32)"></canvas>
+			<canvas width="16" height="16" style="background-color: #240055;" onclick="mudaCorId(33)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2400AA;" onclick="mudaCorId(34)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2400FF;" onclick="mudaCorId(35)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #242400;" onclick="mudaCorId(36)"></canvas>
+			<canvas width="16" height="16" style="background-color: #242455;" onclick="mudaCorId(37)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2424AA;" onclick="mudaCorId(38)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2424FF;" onclick="mudaCorId(39)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #244800;" onclick="mudaCorId(40)"></canvas>
+			<canvas width="16" height="16" style="background-color: #244855;" onclick="mudaCorId(41)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2448AA;" onclick="mudaCorId(42)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2448FF;" onclick="mudaCorId(43)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #246C00;" onclick="mudaCorId(44)"></canvas>
+			<canvas width="16" height="16" style="background-color: #246C55;" onclick="mudaCorId(45)"></canvas>
+			<canvas width="16" height="16" style="background-color: #246CAA;" onclick="mudaCorId(46)"></canvas>
+			<canvas width="16" height="16" style="background-color: #246CFF;" onclick="mudaCorId(47)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #249000;" onclick="mudaCorId(48)"></canvas>
+			<canvas width="16" height="16" style="background-color: #249055;" onclick="mudaCorId(49)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2490AA;" onclick="mudaCorId(50)"></canvas>
+			<canvas width="16" height="16" style="background-color: #2490FF;" onclick="mudaCorId(51)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #24B400;" onclick="mudaCorId(52)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24B455;" onclick="mudaCorId(53)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24B4AA;" onclick="mudaCorId(54)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24B4FF;" onclick="mudaCorId(55)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #24D800;" onclick="mudaCorId(56)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24D855;" onclick="mudaCorId(57)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24D8AA;" onclick="mudaCorId(58)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24D8FF;" onclick="mudaCorId(59)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #24FC00;" onclick="mudaCorId(60)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24FC55;" onclick="mudaCorId(61)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24FCAA;" onclick="mudaCorId(62)"></canvas>
+			<canvas width="16" height="16" style="background-color: #24FCFF;" onclick="mudaCorId(63)"></canvas>
+			<br>
+		</div>
+		
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #480000;" onclick="mudaCorId(64)"></canvas>
+			<canvas width="16" height="16" style="background-color: #480055;" onclick="mudaCorId(65)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4800AA;" onclick="mudaCorId(66)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4800FF;" onclick="mudaCorId(67)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #482400;" onclick="mudaCorId(68)"></canvas>
+			<canvas width="16" height="16" style="background-color: #482455;" onclick="mudaCorId(69)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4824AA;" onclick="mudaCorId(70)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4824FF;" onclick="mudaCorId(71)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #484800;" onclick="mudaCorId(72)"></canvas>
+			<canvas width="16" height="16" style="background-color: #484855;" onclick="mudaCorId(73)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4848AA;" onclick="mudaCorId(74)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4848FF;" onclick="mudaCorId(75)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #486C00;" onclick="mudaCorId(76)"></canvas>
+			<canvas width="16" height="16" style="background-color: #486C55;" onclick="mudaCorId(77)"></canvas>
+			<canvas width="16" height="16" style="background-color: #486CAA;" onclick="mudaCorId(78)"></canvas>
+			<canvas width="16" height="16" style="background-color: #486CFF;" onclick="mudaCorId(79)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #489000;" onclick="mudaCorId(80)"></canvas>
+			<canvas width="16" height="16" style="background-color: #489055;" onclick="mudaCorId(81)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4890AA;" onclick="mudaCorId(82)"></canvas>
+			<canvas width="16" height="16" style="background-color: #4890FF;" onclick="mudaCorId(83)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #48B400;" onclick="mudaCorId(84)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48B455;" onclick="mudaCorId(85)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48B4AA;" onclick="mudaCorId(86)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48B4FF;" onclick="mudaCorId(87)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #48D800;" onclick="mudaCorId(88)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48D855;" onclick="mudaCorId(89)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48D8AA;" onclick="mudaCorId(90)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48D8FF;" onclick="mudaCorId(91)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #48FC00;" onclick="mudaCorId(92)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48FC55;" onclick="mudaCorId(93)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48FCAA;" onclick="mudaCorId(94)"></canvas>
+			<canvas width="16" height="16" style="background-color: #48FCFF;" onclick="mudaCorId(95)"></canvas>
+			<br>
+		</div>
+		
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #6C0000;" onclick="mudaCorId(96)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C0055;" onclick="mudaCorId(97)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C00AA;" onclick="mudaCorId(98)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C00FF;" onclick="mudaCorId(99)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #6C2400;" onclick="mudaCorId(100)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C2455;" onclick="mudaCorId(101)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C24AA;" onclick="mudaCorId(102)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C24FF;" onclick="mudaCorId(103)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #6C4800;" onclick="mudaCorId(104)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C4855;" onclick="mudaCorId(105)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C48AA;" onclick="mudaCorId(106)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C48FF;" onclick="mudaCorId(107)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #6C6C00;" onclick="mudaCorId(108)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C6C55;" onclick="mudaCorId(109)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C6CAA;" onclick="mudaCorId(110)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C6CFF;" onclick="mudaCorId(111)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #6C9000;" onclick="mudaCorId(112)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C9055;" onclick="mudaCorId(113)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C90AA;" onclick="mudaCorId(114)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6C90FF;" onclick="mudaCorId(115)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #6CB400;" onclick="mudaCorId(116)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CB455;" onclick="mudaCorId(117)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CB4AA;" onclick="mudaCorId(118)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CB4FF;" onclick="mudaCorId(119)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #6CD800;" onclick="mudaCorId(120)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CD855;" onclick="mudaCorId(121)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CD8AA;" onclick="mudaCorId(122)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CD8FF;" onclick="mudaCorId(123)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #6CFC00;" onclick="mudaCorId(124)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CFC55;" onclick="mudaCorId(125)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CFCAA;" onclick="mudaCorId(126)"></canvas>
+			<canvas width="16" height="16" style="background-color: #6CFCFF;" onclick="mudaCorId(127)"></canvas>
+			<br>
+		</div>
+		
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #900000;" onclick="mudaCorId(128)"></canvas>
+			<canvas width="16" height="16" style="background-color: #900055;" onclick="mudaCorId(129)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9000AA;" onclick="mudaCorId(130)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9000FF;" onclick="mudaCorId(131)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #902400;" onclick="mudaCorId(132)"></canvas>
+			<canvas width="16" height="16" style="background-color: #902455;" onclick="mudaCorId(133)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9024AA;" onclick="mudaCorId(134)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9024FF;" onclick="mudaCorId(135)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #904800;" onclick="mudaCorId(136)"></canvas>
+			<canvas width="16" height="16" style="background-color: #904855;" onclick="mudaCorId(137)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9048AA;" onclick="mudaCorId(138)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9048FF;" onclick="mudaCorId(139)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #906C00;" onclick="mudaCorId(140)"></canvas>
+			<canvas width="16" height="16" style="background-color: #906C55;" onclick="mudaCorId(141)"></canvas>
+			<canvas width="16" height="16" style="background-color: #906CAA;" onclick="mudaCorId(142)"></canvas>
+			<canvas width="16" height="16" style="background-color: #906CFF;" onclick="mudaCorId(143)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #909000;" onclick="mudaCorId(144)"></canvas>
+			<canvas width="16" height="16" style="background-color: #909055;" onclick="mudaCorId(145)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9090AA;" onclick="mudaCorId(146)"></canvas>
+			<canvas width="16" height="16" style="background-color: #9090FF;" onclick="mudaCorId(147)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #90B400;" onclick="mudaCorId(148)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90B455;" onclick="mudaCorId(149)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90B4AA;" onclick="mudaCorId(150)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90B4FF;" onclick="mudaCorId(151)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #90D800;" onclick="mudaCorId(152)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90D855;" onclick="mudaCorId(153)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90D8AA;" onclick="mudaCorId(154)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90D8FF;" onclick="mudaCorId(155)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #90FC00;" onclick="mudaCorId(156)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90FC55;" onclick="mudaCorId(157)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90FCAA;" onclick="mudaCorId(158)"></canvas>
+			<canvas width="16" height="16" style="background-color: #90FCFF;" onclick="mudaCorId(159)"></canvas>
+			<br>
+		</div>
+		
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #B40000;" onclick="mudaCorId(160)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B40055;" onclick="mudaCorId(161)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B400AA;" onclick="mudaCorId(162)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B400FF;" onclick="mudaCorId(163)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #B42400;" onclick="mudaCorId(164)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B42455;" onclick="mudaCorId(165)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B424AA;" onclick="mudaCorId(166)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B424FF;" onclick="mudaCorId(167)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #B44800;" onclick="mudaCorId(168)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B44855;" onclick="mudaCorId(169)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B448AA;" onclick="mudaCorId(170)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B448FF;" onclick="mudaCorId(171)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #B46C00;" onclick="mudaCorId(172)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B46C55;" onclick="mudaCorId(173)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B46CAA;" onclick="mudaCorId(174)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B46CFF;" onclick="mudaCorId(175)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #B49000;" onclick="mudaCorId(176)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B49055;" onclick="mudaCorId(177)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B490AA;" onclick="mudaCorId(178)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B490FF;" onclick="mudaCorId(179)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #B4B400;" onclick="mudaCorId(180)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4B455;" onclick="mudaCorId(181)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4B4AA;" onclick="mudaCorId(182)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4B4FF;" onclick="mudaCorId(183)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #B4D800;" onclick="mudaCorId(184)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4D855;" onclick="mudaCorId(185)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4D8AA;" onclick="mudaCorId(186)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4D8FF;" onclick="mudaCorId(187)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #B4FC00;" onclick="mudaCorId(188)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4FC55;" onclick="mudaCorId(189)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4FCAA;" onclick="mudaCorId(190)"></canvas>
+			<canvas width="16" height="16" style="background-color: #B4FCFF;" onclick="mudaCorId(191)"></canvas>
+			<br>
+		</div>
+		
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #D80000;" onclick="mudaCorId(192)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D80055;" onclick="mudaCorId(193)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D800AA;" onclick="mudaCorId(194)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D800FF;" onclick="mudaCorId(195)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #D82400;" onclick="mudaCorId(196)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D82455;" onclick="mudaCorId(197)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D824AA;" onclick="mudaCorId(198)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D824FF;" onclick="mudaCorId(199)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #D84800;" onclick="mudaCorId(200)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D84855;" onclick="mudaCorId(201)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D848AA;" onclick="mudaCorId(202)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D848FF;" onclick="mudaCorId(203)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #D86C00;" onclick="mudaCorId(204)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D86C55;" onclick="mudaCorId(205)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D86CAA;" onclick="mudaCorId(206)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D86CFF;" onclick="mudaCorId(207)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #D89000;" onclick="mudaCorId(208)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D89055;" onclick="mudaCorId(209)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D890AA;" onclick="mudaCorId(210)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D890FF;" onclick="mudaCorId(211)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #D8B400;" onclick="mudaCorId(212)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8B455;" onclick="mudaCorId(213)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8B4AA;" onclick="mudaCorId(214)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8B4FF;" onclick="mudaCorId(215)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #D8D800;" onclick="mudaCorId(216)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8D855;" onclick="mudaCorId(217)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8D8AA;" onclick="mudaCorId(218)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8D8FF;" onclick="mudaCorId(219)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #D8FC00;" onclick="mudaCorId(220)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8FC55;" onclick="mudaCorId(221)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8FCAA;" onclick="mudaCorId(222)"></canvas>
+			<canvas width="16" height="16" style="background-color: #D8FCFF;" onclick="mudaCorId(223)"></canvas>
+			<br>
+		</div>
+		
+		<div style="float:left;">
+			<canvas width="16" height="16" style="background-color: #FC0000;" onclick="mudaCorId(224)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC0055;" onclick="mudaCorId(225)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC00AA;" onclick="mudaCorId(226)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC00FF;" onclick="mudaCorId(227)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #FC2400;" onclick="mudaCorId(228)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC2455;" onclick="mudaCorId(229)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC24AA;" onclick="mudaCorId(230)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC24FF;" onclick="mudaCorId(231)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #FC4800;" onclick="mudaCorId(232)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC4855;" onclick="mudaCorId(233)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC48AA;" onclick="mudaCorId(234)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC48FF;" onclick="mudaCorId(235)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #FC6C00;" onclick="mudaCorId(236)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC6C55;" onclick="mudaCorId(237)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC6CAA;" onclick="mudaCorId(238)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC6CFF;" onclick="mudaCorId(239)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #FC9000;" onclick="mudaCorId(240)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC9055;" onclick="mudaCorId(241)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC90AA;" onclick="mudaCorId(242)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FC90FF;" onclick="mudaCorId(243)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #FCB400;" onclick="mudaCorId(244)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCB455;" onclick="mudaCorId(245)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCB4AA;" onclick="mudaCorId(246)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCB4FF;" onclick="mudaCorId(247)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #FCD800;" onclick="mudaCorId(248)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCD855;" onclick="mudaCorId(249)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCD8AA;" onclick="mudaCorId(250)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCD8FF;" onclick="mudaCorId(251)"></canvas>
+			<br>
+			<canvas width="16" height="16" style="background-color: #FCFC00;" onclick="mudaCorId(252)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCFC55;" onclick="mudaCorId(253)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCFCAA;" onclick="mudaCorId(254)"></canvas>
+			<canvas width="16" height="16" style="background-color: #FCFCFF;" onclick="mudaCorId(255)"></canvas>
+			<br>
+		</div>
+	</div>
+	
+	<textarea style='float:left;' rows='8' cols='50' id="output" > </textarea>
+	<input style='float:left;' type=button value="Código" onClick="copy2cb()"/> </input>
+
+</body>
